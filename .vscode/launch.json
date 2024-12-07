@@ -95,5 +95,18 @@
             "args": [],
             "cwd": "${workspaceFolder}"
         },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "day04_2",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=day04_2",
+                ],
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
     ]
 }
