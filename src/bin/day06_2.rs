@@ -42,7 +42,9 @@ fn solve(input: &Input) -> usize {
     let start_facing_dir = Direction::Up;
 
     let mut obstacle_candidate_positions = HashSet::new();
-    for obstacle_pos in input.grid.pos_iter() {
+    for obstacle_pos in
+        iter_path(&input.grid, start_pos, start_facing_dir, None).map(|(pos, _)| pos)
+    {
         if obstacle_pos != start_pos
             && !obstacle_candidate_positions.contains(&obstacle_pos)
             && is_valid_obstacle_candidate(&input.grid, start_pos, start_facing_dir, obstacle_pos)
