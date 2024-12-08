@@ -186,5 +186,18 @@
             "args": [],
             "cwd": "${workspaceFolder}"
         },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "day08_1",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=day08_1",
+                ],
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
     ]
 }
