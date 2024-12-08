@@ -120,12 +120,14 @@ where
 }
 
 fn main() {
+    let start_time = Instant::now();
     let input_str = fs::read_to_string("data/day06/input").unwrap();
     let input = parse_input(&input_str);
 
     let answer = solve(&input);
 
-    println!("{}", answer);
+    println!("Answer: {}", answer);
+    println!("Elapsed time: {}ms", start_time.elapsed().as_millis());
 }
 
 #[cfg(test)]
