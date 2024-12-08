@@ -34,9 +34,7 @@ fn count_xmases(grid: &Grid<char>, pos: Position) -> usize {
         .filter(|d| {
             let pos_iter = get_pos_iter(pos, *d);
             let str: String = pos_iter
-                .map(|p| grid.try_get_pos(&p))
-                .take_while(|x| x.is_some())
-                .flatten()
+                .map_while(|p| grid.try_get_pos(&p))
                 .take(4)
                 .collect();
             str == "XMAS"
