@@ -28,25 +28,25 @@ fn is_x_mas(grid: &Grid<char>, pos: Position) -> bool {
         return false;
     }
 
-    let has_first_diag = match (
-        grid.try_get_pos(&pos.move_in_direction8(EightWayDirection::UpLeft)),
-        grid.try_get_pos(&pos.move_in_direction8(EightWayDirection::DownRight)),
-    ) {
-        (Some(&'M'), Some(&'S')) | (Some(&'S'), Some(&'M')) => true,
-        _ => false,
-    };
+    let has_first_diag = matches!(
+        (
+            grid.try_get_pos(&pos.move_in_direction8(EightWayDirection::UpLeft)),
+            grid.try_get_pos(&pos.move_in_direction8(EightWayDirection::DownRight)),
+        ),
+        (Some(&'M'), Some(&'S')) | (Some(&'S'), Some(&'M'))
+    );
 
     if !has_first_diag {
         return false;
     }
 
-    let has_second_diag = match (
-        grid.try_get_pos(&pos.move_in_direction8(EightWayDirection::UpRight)),
-        grid.try_get_pos(&pos.move_in_direction8(EightWayDirection::DownLeft)),
-    ) {
-        (Some(&'M'), Some(&'S')) | (Some(&'S'), Some(&'M')) => true,
-        _ => false,
-    };
+    let has_second_diag = matches!(
+        (
+            grid.try_get_pos(&pos.move_in_direction8(EightWayDirection::UpRight)),
+            grid.try_get_pos(&pos.move_in_direction8(EightWayDirection::DownLeft)),
+        ),
+        (Some(&'M'), Some(&'S')) | (Some(&'S'), Some(&'M'))
+    );
 
     if !has_second_diag {
         return false;

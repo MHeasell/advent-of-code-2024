@@ -29,7 +29,7 @@ fn differ_in_range(xs: &[i32]) -> bool {
     xs.windows(2).all(|w| {
         let (a, b) = (w[0], w[1]);
         let diff = a.abs_diff(b);
-        diff >= 1 && diff <= 3
+        (1..=3).contains(&diff)
     })
 }
 

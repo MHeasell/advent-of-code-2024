@@ -11,7 +11,7 @@ pub struct Grid<T> {
 
 impl Grid<char> {
     pub fn from_strings(lines: &[String]) -> Self {
-        if lines.len() == 0 {
+        if lines.is_empty() {
             return Grid {
                 width: 0,
                 vec: vec![],
@@ -33,7 +33,7 @@ impl<T: Clone> Grid<T> {
     }
 
     pub fn from_vecs(lines: &[Vec<T>]) -> Self {
-        if lines.len() == 0 {
+        if lines.is_empty() {
             return Grid {
                 width: 0,
                 vec: vec![],

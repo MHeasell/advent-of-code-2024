@@ -1,7 +1,4 @@
-use std::{
-    convert::identity,
-    fs::{self},
-};
+use std::fs::{self};
 
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -62,7 +59,7 @@ fn solve(input: &Input) -> i32 {
             };
             Some(instruction)
         })
-        .filter_map(identity)
+        .flatten()
         .map(|(a, b)| a * b)
         .sum()
 }
