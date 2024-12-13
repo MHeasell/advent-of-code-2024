@@ -1,3 +1,5 @@
+use std::{collections::HashSet, hash::Hash};
+
 /// Returns (steps before loop, loop length).
 ///
 /// Steps before loop is an overestimation.
@@ -29,4 +31,25 @@ where
     let loop_length = a.take_while(|x| *x != hare).count() + 1;
 
     Some((steps, loop_length))
+}
+
+pub fn flood_fill<T, I, F>(start: T, mut succ: F) -> HashSet<T>
+where
+    T: Eq + Hash + Copy,
+    I: Iterator<Item = T>,
+    F: FnMut(&T) -> I,
+{
+    let mut stack = vec![start];
+    let mut seen = HashSet::from([start]);
+
+    while let Some(elem) = stack.pop() {
+        let neighbours = succ(&elem);
+        for n in neighbours {
+            if seen.insert(n) {
+                stack.push(n);
+            }
+        }
+    }
+
+    seen
 }
