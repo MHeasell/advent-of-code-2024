@@ -18,9 +18,55 @@ fn parse_input(s: &str) -> Input {
 }
 
 fn solve(input: &Input) -> usize {
-    let mut runs = to_runs(&input.line);
-    compact(&mut runs);
-    compute_checksum(&runs)
+    let runs = to_runs(&input.line);
+    let mut files = runs
+        .iter()
+        .scan(0usize, |pos, r| {
+            let start = *pos;
+            *pos += usize::from(r.len);
+            Some((start, r))
+        })
+        .filter_map(|(p, r)| r.file_id.map(|id| (p, id, r.len)))
+        .collect::<Vec<_>>();
+
+    let mut frees = runs
+        .iter()
+        .scan(0usize, |pos, r| {
+            let start = *pos;
+            *pos += usize::from(r.len);
+            Some((start, r))
+        })
+        .filter_map(|(p, r)| r.file_id.is_none().then_some((p, r.len)))
+        .collect::<Vec<_>>();
+
+    compact(&mut files, &mut frees);
+    compute_checksum(&files)
+}
+
+fn compute_checksum(files: &[(usize, usize, u8)]) -> usize {
+    files
+        .iter()
+        .map(|(pos, id, len)| compute_file_checksum(*pos, *id, *len))
+        .sum()
+}
+
+fn compute_file_checksum(pos: usize, file_id: usize, len: u8) -> usize {
+    let tri = triangle(usize::from(len) - 1);
+    (tri * file_id) + (pos * usize::from(len) * file_id)
+}
+
+fn compact(files: &mut [(usize, usize, u8)], frees: &mut [(usize, u8)]) {
+    files.iter_mut().rev().for_each(|(file_pos, _, file_len)| {
+        let free = frees
+            .iter_mut()
+            .take_while(|(pos, _)| *pos < *file_pos)
+            .find(|(_, len)| *len >= *file_len);
+        if let Some((free_pos, free_len)) = free {
+            *file_pos = *free_pos;
+            *free_pos += usize::from(*file_len);
+            *free_len -= *file_len;
+        }
+    });
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -52,54 +98,8 @@ fn to_runs(line: &[u8]) -> Vec<Run> {
         .collect()
 }
 
-fn compute_checksum(runs: &[Run]) -> usize {
-    runs.iter()
-        .scan(0usize, |pos, r| {
-            let start = *pos;
-            *pos += usize::from(r.len);
-            Some((start, r))
-        })
-        .filter_map(|(start, r)| {
-            r.file_id.map(|file_id| {
-                let tri = triangle(usize::from(r.len) - 1);
-                (tri * file_id) + (start * usize::from(r.len) * file_id)
-            })
-        })
-        .sum()
-}
-
 fn triangle(n: usize) -> usize {
     (n * (n + 1)) / 2
-}
-
-fn compact(runs: &mut Vec<Run>) {
-    let mut end_idx = runs.len() - 1;
-
-    while end_idx >= 1 {
-        let end_run = &runs[end_idx];
-        if end_run.file_id.is_none() {
-            end_idx -= 1;
-            continue;
-        };
-
-        let pos = runs
-            .iter()
-            .take(end_idx)
-            .position(|r| r.file_id.is_none() && r.len >= end_run.len);
-
-        if let Some(pos) = pos {
-            assert!(pos < end_idx);
-            let remaining_space = runs[pos].len - end_run.len;
-            runs[pos] = *end_run;
-            runs[end_idx].file_id = None;
-            if remaining_space > 0 {
-                runs.insert(pos + 1, Run::free(remaining_space));
-                end_idx += 1;
-            }
-        }
-
-        end_idx -= 1;
-    }
 }
 
 fn main() {
@@ -115,26 +115,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use std::iter;
-
     use super::*;
-
-    fn format_runs(runs: &[Run]) -> String {
-        runs.iter()
-            .flat_map(|r| {
-                iter::repeat_n(
-                    r.file_id.map(|id| id.to_string()).unwrap_or(".".to_owned()),
-                    r.len.into(),
-                )
-            })
-            .collect()
-    }
-
-    #[test]
-    fn test_compute_checksum() {
-        let v = vec![Run::file(4, 3)];
-        assert_eq!(compute_checksum(&v), 18);
-    }
 
     #[test]
     fn test_solve1() {
@@ -142,14 +123,6 @@ mod tests {
 2333133121414131402
 ";
         let input = parse_input(&input_str);
-        let mut runs = to_runs(&input.line);
-
-        compact(&mut runs);
-        assert_eq!(
-            format_runs(&runs),
-            "00992111777.44.333....5555.6666.....8888.."
-        );
-
         let answer = solve(&input);
         assert_eq!(answer, 2858);
     }
