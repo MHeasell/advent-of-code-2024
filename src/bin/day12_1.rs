@@ -28,7 +28,7 @@ fn solve(input: &Input) -> usize {
         let mut area = 0;
         let mut perimeter = 0;
         flood_fill(&mut seen, pos, |p| {
-            let val = *input.grid.get_pos(&p);
+            let val = *input.grid.get_pos(p);
             let neighbours: Vec<_> = input
                 .grid
                 .neighbours(*p)

@@ -35,7 +35,7 @@ fn solve(input: &Input) -> usize {
 fn get_score(grid: &Grid<u8>, start_pos: Position) -> usize {
     let mut count = 0;
     flood_fill(start_pos, |p| {
-        let val = *grid.get_pos(&p);
+        let val = *grid.get_pos(p);
         if val == 9 {
             count += 1;
         }
