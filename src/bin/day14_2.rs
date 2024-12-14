@@ -1,5 +1,4 @@
 use std::{
-    collections::HashSet,
     fs::{self},
     ops::{Add, Mul},
     time::Instant,
@@ -70,7 +69,7 @@ fn solve(input: &Input, width: i64, height: i64) -> usize {
     let rect = Rect::new(width, height);
 
     for i in 0..10000 {
-        let lookup: HashSet<Position> = input
+        let mut positions: Vec<_> = input
             .robots
             .iter()
             .map(|robot| rect.pos_at_t(robot, i))
@@ -78,12 +77,28 @@ fn solve(input: &Input, width: i64, height: i64) -> usize {
 
         // hack: let's assume that this christmas tree drawing will have 20 robots
         // in a horizontal line somewhere.
-        if rect.find_robots_row(&lookup) {
-            rect.draw(&lookup);
+        let robots_in_row = 20;
+        positions.sort_by(|a, b| a.y.cmp(&b.y).then_with(|| a.x.cmp(&b.x)));
+        if contains_run(positions.windows(2), robots_in_row - 1, |elems| {
+            elems[1].x == elems[0].x + 1
+        }) {
+            rect.draw(&positions);
             return i as usize;
         }
     }
     panic!("did not find image");
+}
+
+fn contains_run<T>(it: impl Iterator<Item = T>, num: usize, f: impl Fn(&T) -> bool) -> bool {
+    it.scan(0, |acc, elem| {
+        if f(&elem) {
+            *acc += 1;
+        } else {
+            *acc = 0;
+        };
+        Some(*acc)
+    })
+    .any(|x| x == num)
 }
 
 struct Rect {
@@ -101,29 +116,14 @@ impl Rect {
         Position::new(pos.x.rem_euclid(self.width), pos.y.rem_euclid(self.height))
     }
 
-    fn find_robots_row(&self, lookup: &HashSet<Position>) -> bool {
-        let mut count = 0;
+    fn draw(&self, positions: &[Position]) {
+        let mut it = positions.iter();
+        let mut pos = it.next();
+
         for y in 0..self.height {
             for x in 0..self.width {
-                if lookup.contains(&Position::new(x, y)) {
-                    count += 1;
-                } else {
-                    count = 0;
-                };
-
-                if count == 20 {
-                    return true;
-                }
-            }
-        }
-
-        false
-    }
-
-    fn draw(&self, lookup: &HashSet<Position>) {
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let c = if lookup.contains(&Position::new(x, y)) {
+                let c = if pos == Some(&Position::new(x, y)) {
+                    pos = it.next();
                     '#'
                 } else {
                     '.'
