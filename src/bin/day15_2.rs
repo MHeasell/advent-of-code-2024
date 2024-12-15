@@ -107,65 +107,53 @@ fn solve(input: &Input) -> i64 {
 
 fn apply_instruction(g: &mut Grid<Cell>, pos: &mut Position, d: Direction) {
     let next_pos = pos.move_in_direction(d);
-    let cell_ahead = g.get_pos(&next_pos);
-    match cell_ahead {
-        Cell::Wall => {
+    if can_push_into(g, next_pos, d) {
+        push_into(g, next_pos, d);
+        *pos = next_pos;
+    }
+}
+
+fn push_into(g: &mut Grid<Cell>, pos: Position, d: Direction) {
+    match *g.get_pos(&pos) {
+        Cell::Wall => panic!("hit wall while pushing"),
+        Cell::Floor | Cell::Robot => {
             // do nothing
         }
-        Cell::Box(_) => {
-            if push_box(g, next_pos, d) {
-                *pos = next_pos;
+        Cell::Box(side) => {
+            match d {
+                Direction::Right | Direction::Left => {
+                    // Need to push both units of the two-wide box.
+                    let next_pos = pos.move_in_direction(d);
+                    let next_next_pos = next_pos.move_in_direction(d);
+
+                    push_into(g, next_next_pos, d);
+
+                    g.set_pos(&next_next_pos, *g.get_pos(&next_pos));
+                    g.set_pos(&next_pos, *g.get_pos(&pos));
+                    g.set_pos(&pos, Cell::Floor);
+                }
+                Direction::Up | Direction::Down => {
+                    // Need to push both sides of the box.
+                    let other_side_pos = pos.move_in_direction(side.opposite_dir());
+                    let next_pos = pos.move_in_direction(d);
+                    let next_other_side_pos = other_side_pos.move_in_direction(d);
+
+                    push_into(g, next_pos, d);
+
+                    g.set_pos(&next_pos, *g.get_pos(&pos));
+                    g.set_pos(&pos, Cell::Floor);
+
+                    push_into(g, next_other_side_pos, d);
+
+                    g.set_pos(&next_other_side_pos, *g.get_pos(&other_side_pos));
+                    g.set_pos(&other_side_pos, Cell::Floor);
+                }
             }
         }
-        Cell::Floor | Cell::Robot => {
-            *pos = next_pos;
-        }
     }
 }
 
-fn push_box(g: &mut Grid<Cell>, pos: Position, d: Direction) -> bool {
-    let Cell::Box(side) = *g.get_pos(&pos) else {
-        return false;
-    };
-
-    if !can_be_pushed(g, pos, d) {
-        return false;
-    }
-
-    match d {
-        Direction::Right | Direction::Left => {
-            // Need to push both units of the two-wide box.
-            let next_pos = pos.move_in_direction(d);
-            let next_next_pos = next_pos.move_in_direction(d);
-
-            push_box(g, next_next_pos, d);
-
-            g.set_pos(&next_next_pos, *g.get_pos(&next_pos));
-            g.set_pos(&next_pos, *g.get_pos(&pos));
-            g.set_pos(&pos, Cell::Floor);
-        }
-        Direction::Up | Direction::Down => {
-            // Need to push both sides of the box.
-            let other_side_pos = pos.move_in_direction(side.opposite_dir());
-            let next_pos = pos.move_in_direction(d);
-            let next_other_side_pos = other_side_pos.move_in_direction(d);
-
-            push_box(g, next_pos, d);
-
-            g.set_pos(&next_pos, *g.get_pos(&pos));
-            g.set_pos(&pos, Cell::Floor);
-
-            push_box(g, next_other_side_pos, d);
-
-            g.set_pos(&next_other_side_pos, *g.get_pos(&other_side_pos));
-            g.set_pos(&other_side_pos, Cell::Floor);
-        }
-    }
-
-    true
-}
-
-fn can_be_pushed(g: &mut Grid<Cell>, pos: Position, d: Direction) -> bool {
+fn can_push_into(g: &mut Grid<Cell>, pos: Position, d: Direction) -> bool {
     let cell = g.get_pos(&pos);
     match cell {
         Cell::Wall => false,
@@ -175,13 +163,13 @@ fn can_be_pushed(g: &mut Grid<Cell>, pos: Position, d: Direction) -> bool {
                 // Boxes are two wide, so pushing up or down can mean that a box
                 // may push on two other boxes. Check both sides.
                 let other_side_pos = pos.move_in_direction(side.opposite_dir());
-                can_be_pushed(g, pos.move_in_direction(d), d)
-                    && can_be_pushed(g, other_side_pos.move_in_direction(d), d)
+                can_push_into(g, pos.move_in_direction(d), d)
+                    && can_push_into(g, other_side_pos.move_in_direction(d), d)
             }
             Direction::Left | Direction::Right => {
                 // Boxes are two wide and one tall, so pushing horizontally is
                 // easy, so simply skip two cells ahead.
-                can_be_pushed(g, pos.move_in_direction(d).move_in_direction(d), d)
+                can_push_into(g, pos.move_in_direction(d).move_in_direction(d), d)
             }
         },
     }
