@@ -27,7 +27,7 @@ fn parse_input(s: &str) -> Input {
         &groups
             .next()
             .unwrap()
-            .into_iter()
+            .iter()
             .map(|l| l.chars().map(|c| parse_char(c).unwrap()).collect())
             .collect::<Vec<_>>(),
     );
@@ -35,7 +35,7 @@ fn parse_input(s: &str) -> Input {
     let instructions = groups
         .next()
         .unwrap()
-        .into_iter()
+        .iter()
         .flat_map(|l| l.chars().map(|c| parse_instruction(c).unwrap()))
         .collect();
 
