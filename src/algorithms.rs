@@ -57,6 +57,26 @@ where
     seen
 }
 
+pub fn flood_fill2<T, F>(start: &[T], succ: F) -> HashSet<T>
+where
+    T: Eq + Hash + Copy,
+    F: Fn(&T) -> Vec<T>,
+{
+    let mut stack = Vec::from(start);
+    let mut seen = HashSet::from_iter(start.iter().copied());
+
+    while let Some(elem) = stack.pop() {
+        let neighbours = succ(&elem);
+        for n in neighbours {
+            if seen.insert(n) {
+                stack.push(n);
+            }
+        }
+    }
+
+    seen
+}
+
 /// Inserts the given value into the queue
 /// with the given priority.
 ///
@@ -66,7 +86,7 @@ where
 ///
 /// If the existing value's priority is lower than the priority given
 /// then the existing value is left unchanged.
-fn priority_queue_insert<T: Eq>(queue: &mut VecDeque<(T, i64)>, value: T, priority: i64) {
+pub fn priority_queue_insert<T: Eq>(queue: &mut VecDeque<(T, i64)>, value: T, priority: i64) {
     let existing_elem = queue.iter().enumerate().find(|(_, elem)| elem.0 == value);
 
     match existing_elem {
