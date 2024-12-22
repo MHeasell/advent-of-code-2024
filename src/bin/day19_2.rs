@@ -24,18 +24,15 @@ fn parse_input(s: &str) -> Input {
 }
 
 fn solve(input: &Input) -> usize {
+    let mut cache = HashMap::new();
     input
         .designs
         .iter()
-        .map(|d| count_ways(d, &input.towels))
+        .map(|d| count_ways(&mut cache, d, &input.towels))
         .sum()
 }
 
-fn count_ways(d: &str, towels: &[String]) -> usize {
-    count_ways_inner(&mut HashMap::new(), d, towels)
-}
-
-fn count_ways_inner(cache: &mut HashMap<String, usize>, d: &str, towels: &[String]) -> usize {
+fn count_ways(cache: &mut HashMap<String, usize>, d: &str, towels: &[String]) -> usize {
     if d.is_empty() {
         return 1;
     }
@@ -47,7 +44,7 @@ fn count_ways_inner(cache: &mut HashMap<String, usize>, d: &str, towels: &[Strin
     let result = towels
         .iter()
         .filter_map(|t| d.strip_prefix(t))
-        .map(|d| count_ways_inner(cache, d, towels))
+        .map(|d| count_ways(cache, d, towels))
         .sum();
 
     cache.insert(d.to_owned(), result);
