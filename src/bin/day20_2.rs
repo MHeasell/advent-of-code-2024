@@ -1,10 +1,10 @@
 use std::{
-    collections::HashMap,
     fs::{self},
+    iter,
     time::Instant,
 };
 
-use aoc24::{algorithms::flood_fill, direction::DIRECTIONS, grid::Grid, position::Position};
+use aoc24::{direction::DIRECTIONS, grid::Grid, position::Position};
 
 #[derive(Debug)]
 struct Input {
@@ -39,73 +39,56 @@ fn parse_input(s: &str) -> Input {
 }
 
 fn solve(input: &Input) -> usize {
-    enumerate_cheats(input, 20)
+    let path = get_path(&input.grid);
+    enumerate_cheats(&path, 20)
         .filter(|(i, _)| *i >= 100)
         .count()
 }
 
-fn find_bridges(grid: &Grid<Cell>, p: Position, n: usize) -> impl Iterator<Item = Position> + '_ {
-    // We can just enumerate every floor position in range of the start here,
-    // regardless of whether it goes through a wall. Anything that doesn't go
-    // through a wall at some point won't save any time and will be discarded
-    // later.
-
-    // There is definitely a smarter way to iterate, but I already have this
-    // flood fill function on hand so it's quick to implement.
-    let ends = flood_fill(p, |q| {
-        if q.manhattan_distance(&p) as usize == n {
-            return vec![].into_iter();
-        }
-        DIRECTIONS
-            .iter()
-            .map(|&d| q.move_in_direction(d))
-            .filter(|p| grid.is_in_bounds(p))
-            .collect::<Vec<_>>()
-            .into_iter()
-    });
-    ends.into_iter().filter(|p| *grid.get_pos(p) != Cell::Wall)
-}
-
 fn enumerate_cheats(
-    input: &Input,
+    path_vec: &[Position],
     n: usize,
 ) -> impl Iterator<Item = (usize, (Position, Position))> + '_ {
-    let start = input.grid.position(|c| *c == Cell::Start).unwrap();
+    // Cheats must start and end on the path so we'll look at all pairs
+    // of points on the path and keep only those that are viable cheats.
+    iter_pairs_with_positions(path_vec).filter_map(move |((i, &p1), (j, &p2))| {
+        let bridge_distance = p1.manhattan_distance(&p2) as usize;
+        if bridge_distance > n {
+            return None;
+        }
+        let skipped_steps = j - i;
+        if skipped_steps <= bridge_distance {
+            return None;
+        }
+        Some((skipped_steps - bridge_distance, (p1, p2)))
+    })
+}
 
-    let mut path = HashMap::<Position, usize>::new();
-    let mut count = 0;
-    flood_fill(start, |&p| {
-        path.insert(p, count);
-        count += 1;
-        DIRECTIONS
+/// Iterates forward pairs with their positions in the slice.
+/// i.e. for the slice [a,b,c], yields ((0,a),(1,b)), ((0,a),(2,c)), ((1,b),(2,c))
+fn iter_pairs_with_positions<T>(slice: &[T]) -> impl Iterator<Item = ((usize, &T), (usize, &T))> {
+    slice.iter().enumerate().flat_map(|(i, p1)| {
+        slice[(i + 1)..]
             .iter()
-            .map(move |&d| p.move_in_direction(d))
-            .filter(|p| input.grid.try_get_pos(p).is_some_and(|&c| c != Cell::Wall))
-    });
+            .enumerate()
+            .map(move |(j, p2)| ((i, p1), (i + j + 1, p2)))
+    })
+}
 
-    input
-        .grid
-        .enumerate()
-        .filter(|(_, c)| match c {
-            Cell::Wall => false,
-            Cell::Floor => true,
-            Cell::Start => true,
-            Cell::End => false,
-        })
-        .flat_map(move |(p, _)| find_bridges(&input.grid, p, n).map(move |b| (p, b)))
-        .filter_map(move |(start, end)| {
-            let start_step = path[&start];
-            let end_step = path[&end];
-            let bridge_distance = start.manhattan_distance(&end) as usize;
-            if end_step <= start_step {
-                return None;
-            }
-            let skipped_steps = end_step - start_step;
-            if skipped_steps <= bridge_distance {
-                return None;
-            }
-            Some((skipped_steps - bridge_distance, (start, end)))
-        })
+fn get_path(grid: &Grid<Cell>) -> Vec<Position> {
+    let start = grid.position(|c| *c == Cell::Start).unwrap();
+
+    // We rely on the assumption that there is only a single path through the maze.
+    // We'll just walk through that single path from start to end.
+    iter::successors(Some((start, None)), |(p, from_dir)| {
+        DIRECTIONS
+            .into_iter()
+            .filter(|d| Some(*d) != *from_dir)
+            .map(|d| (p.move_in_direction(d), Some(d.reverse())))
+            .find(|(p, _)| *grid.get_pos(p) != Cell::Wall)
+    })
+    .map(|(p, _)| p)
+    .collect()
 }
 
 fn main() {
@@ -147,7 +130,8 @@ mod tests {
         let input = parse_input(&input_str);
 
         let mut cheat_counts = HashMap::new();
-        for (i, _) in enumerate_cheats(&input, 20) {
+        let path = get_path(&input.grid);
+        for (i, _) in enumerate_cheats(&path, 20) {
             cheat_counts
                 .entry(i)
                 .and_modify(|e| {
