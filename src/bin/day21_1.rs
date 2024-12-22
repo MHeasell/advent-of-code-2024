@@ -40,7 +40,7 @@ fn solve(input: &Input) -> usize {
 
 fn encode(code: &str) -> String {
     code.chars()
-        .map(|c| position_of_num_key(c))
+        .map(position_of_num_key)
         .scan(position_of_num_key('A'), |pos, next_pos| {
             let result = encode_move_and_press(*pos, next_pos);
             *pos = next_pos;

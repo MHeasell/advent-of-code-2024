@@ -40,7 +40,7 @@ fn parse_input(s: &str) -> Input {
 }
 
 fn solve(input: &Input) -> usize {
-    enumerate_cheats(&input).filter(|(i, _)| *i >= 100).count()
+    enumerate_cheats(input).filter(|(i, _)| *i >= 100).count()
 }
 
 fn find_bridges(grid: &Grid<Cell>, p: Position) -> impl Iterator<Item = Position> + '_ {

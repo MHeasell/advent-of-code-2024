@@ -36,7 +36,7 @@ fn count_ways(d: &str, towels: &[String]) -> usize {
 }
 
 fn count_ways_inner(cache: &mut HashMap<String, usize>, d: &str, towels: &[String]) -> usize {
-    if d == "" {
+    if d.is_empty() {
         return 1;
     }
 

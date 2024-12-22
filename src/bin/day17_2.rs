@@ -67,8 +67,7 @@ fn solve(input: &Input) -> i64 {
     // repeatedly in a loop.
     // We can go backwards then and figure out how to build up 'a
     // to build up the output we want, starting from the last output.
-    let code = &input.program;
-    find_reg_val(&code, 0).unwrap()
+    find_reg_val(&input.program, 0).unwrap()
 }
 
 fn find_reg_val(outs: &[u8], final_reg_val: i64) -> Option<i64> {

@@ -87,7 +87,7 @@ fn solve(input: &Input) -> String {
         match op {
             // adv
             0 => {
-                vm.a = vm.a / 2i64.pow(vm.get_combo(operand).try_into().unwrap());
+                vm.a /= 2i64.pow(vm.get_combo(operand).try_into().unwrap());
             }
             // bxl
             1 => {

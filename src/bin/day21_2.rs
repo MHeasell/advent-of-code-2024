@@ -105,7 +105,7 @@ impl Context {
 
     fn get_encoding_len(&mut self, code: &str, depth: usize) -> usize {
         code.chars()
-            .map(|c| position_of_num_key(c))
+            .map(position_of_num_key)
             .scan(position_of_num_key('A'), |pos, next_pos| {
                 let result = self.get_move_and_press_encoding_len(*pos, next_pos, depth);
                 *pos = next_pos;

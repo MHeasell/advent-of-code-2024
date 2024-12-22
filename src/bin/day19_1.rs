@@ -36,7 +36,7 @@ fn is_possible(d: &str, towels: &[String]) -> bool {
 }
 
 fn is_possible_inner(cache: &mut HashMap<String, bool>, d: &str, towels: &[String]) -> bool {
-    if d == "" {
+    if d.is_empty() {
         return true;
     }
 

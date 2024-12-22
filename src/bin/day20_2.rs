@@ -39,7 +39,7 @@ fn parse_input(s: &str) -> Input {
 }
 
 fn solve(input: &Input) -> usize {
-    enumerate_cheats(&input, 20)
+    enumerate_cheats(input, 20)
         .filter(|(i, _)| *i >= 100)
         .count()
 }
