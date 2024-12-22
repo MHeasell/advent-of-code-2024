@@ -98,6 +98,9 @@ impl Context {
         if depth == 0 {
             return 1;
         }
+        if prev == next {
+            return 1;
+        }
 
         if let Some(cost) = self.cache.get(&(prev, next, depth)) {
             return *cost;
@@ -250,7 +253,7 @@ fn main() {
     let answer = solve(&input, 25);
 
     println!("Answer: {}", answer);
-    println!("Elapsed time: {}ms", start_time.elapsed().as_millis());
+    println!("Elapsed time: {}us", start_time.elapsed().as_micros());
 }
 
 #[cfg(test)]
