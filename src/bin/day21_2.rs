@@ -17,6 +17,49 @@ fn parse_input(s: &str) -> Input {
     Input { lines }
 }
 
+/*
+Notes on how the order of button presses affects encoding length:
+
+Consider the candidate encodings to go from numpad 3 to 7:
+
+# level 0
+
+There are two candidate encodings, both with length 5.
+
+    <<^^A
+    ^^<<A
+
+# level 1
+
+Again there are two candidate encodings, both with length 11.
+
+    v<<AA>^AA>A
+    <AAv<AA>>^A
+
+# level 2
+
+There are eight candidate encodings -- four for each encoding at the previous level.
+However note here that the first group has length 23 while the second group has length 27.
+
+    <vA<AA>>^AAvA<^A>AAvA^A
+    <vA<AA>>^AAvA^<A>AAvA^A
+    v<A<AA>>^AAvA<^A>AAvA^A
+    v<A<AA>>^AAvA^<A>AAvA^A
+
+    v<<A>>^AA<vA<A>>^AAvAA<^A>A
+    v<<A>>^AA<vA<A>>^AAvAA^<A>A
+    v<<A>>^AAv<A<A>>^AAvAA<^A>A
+    v<<A>>^AAv<A<A>>^AAvAA^<A>A
+
+Why is this the case?
+Observe that the level 1 encodings both have two `<` characters
+(all encodings of the same length must have exactly the same set of characters).
+In the first encoding the `<` are repeated, while in the second they are separate.
+The '<' is the most costly to visit, because it is furthest away from the 'A'.
+Repeating it allowed us to skip the cost of visiting it for the second time
+which was beneficial overall to the length of the level 2 encoding.
+*/
+
 fn solve(input: &Input, depth: usize) -> usize {
     // Observations:
     //
