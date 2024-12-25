@@ -1,0 +1,30 @@
+I fantasized about writing some wacky symbolic execution engine to
+programatically find the solution to this one, but past experience has
+taught me that it's much easier to do these ones manually. :')
+
+To solve this one I used some find and replace in vim to turn the input
+into a graphviz dot file. Then I rendered it out as a PNG using
+
+    dot graph.dot -Tpng > out.png
+
+Then I manually looked over the connections in the PNG to find the
+swapped wires.
+
+Every input except bit 0 needs to go through two half adders before
+being output, so the first thing I looked for was the sequence `input
+-> XOR -> XOR -> output` for every bit.
+
+I found the following miswirings that way:
+
+- nqk and z07
+- fpq and z24
+- srn and z32
+
+Then I looked at the carry bit wiring for every bit `input -> XOR -> AND
+-> OR -> ...`.
+
+That revealed the last miswired pair: fgt and pcp
+
+From there we can easily sort and join by commas to get the answer:
+
+fgt,fpq,nqk,pcp,srn,z07,z24,z32
