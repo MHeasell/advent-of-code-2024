@@ -101,8 +101,8 @@ fn solve(input: &Input) -> usize {
 
     let mut z_wires = values_cache
         .keys()
-        .cloned()
         .filter(|w| w.starts_with('z'))
+        .cloned()
         .collect::<Vec<_>>();
     z_wires.sort();
 
